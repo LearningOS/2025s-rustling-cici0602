@@ -2,7 +2,7 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
+
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -69,15 +69,50 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    fn pop_head(&mut self) -> Option<Box<Node<T>>> {
+        let current_head = self.start?;
+        unsafe {
+            self.start = (*current_head.as_ptr()).next;
+            if self.start.is_none() {
+                self.end = None;
+            }
+            self.length -= 1;
+            Some(Box::from_raw(current_head.as_ptr()))
         }
-	}
+    }
+
+    pub fn merge(mut list_a: LinkedList<T>, mut list_b: LinkedList<T>) -> Self 
+    where
+        T: PartialOrd,
+    {
+        let mut merged_list = LinkedList::new();
+        
+        // 逐个比较两个链表的头节点
+        while let (Some(a), Some(b)) = (list_a.start, list_b.start) {
+            let a_val = unsafe { &(*a.as_ptr()).val };
+            let b_val = unsafe { &(*b.as_ptr()).val };
+            
+            if a_val <= b_val {
+                if let Some(node) = list_a.pop_head() {
+                    merged_list.add(node.val);
+                }
+            } else {
+                if let Some(node) = list_b.pop_head() {
+                    merged_list.add(node.val);
+                }
+            }
+        }
+        
+        // 处理剩余节点
+        while let Some(node) = list_a.pop_head() {
+            merged_list.add(node.val);
+        }
+        while let Some(node) = list_b.pop_head() {
+            merged_list.add(node.val);
+        }
+        
+        merged_list
+    }
 }
 
 impl<T> Display for LinkedList<T>

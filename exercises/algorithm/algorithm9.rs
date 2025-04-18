@@ -2,7 +2,6 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -37,28 +36,46 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
-    }
-
-    fn parent_idx(&self, idx: usize) -> usize {
-        idx / 2
-    }
-
-    fn children_present(&self, idx: usize) -> bool {
-        self.left_child_idx(idx) <= self.count
-    }
-
-    fn left_child_idx(&self, idx: usize) -> usize {
-        idx * 2
-    }
-
-    fn right_child_idx(&self, idx: usize) -> usize {
-        self.left_child_idx(idx) + 1
+        self.items.push(value);
+        self.count += 1;
+        let mut i = self.count;
+        loop {
+            if i <= 1 {
+                break;
+            }
+            let parent = i / 2;
+            if !(self.comparator)(&self.items[i], &self.items[parent]) {
+                break;
+            }
+            self.items.swap(i, parent);
+            i = parent;
+        }
     }
 
     fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+        let left = idx * 2;
+        let right = left + 1;
+
+        if right <= self.count {
+            if (self.comparator)(&self.items[left], &self.items[right]) {
+                left
+            } else {
+                right
+            }
+        } else {
+            left
+        }
+    }
+
+    fn heapify_down(&mut self, mut idx: usize) {
+        while idx * 2 <= self.count {
+            let child_idx = self.smallest_child_idx(idx);
+            if (self.comparator)(&self.items[idx], &self.items[child_idx]) {
+                break;
+            }
+            self.items.swap(idx, child_idx);
+            idx = child_idx;
+        }
     }
 }
 
@@ -66,12 +83,10 @@ impl<T> Heap<T>
 where
     T: Default + Ord,
 {
-    /// Create a new MinHeap
     pub fn new_min() -> Self {
         Self::new(|a, b| a < b)
     }
 
-    /// Create a new MaxHeap
     pub fn new_max() -> Self {
         Self::new(|a, b| a > b)
     }
@@ -84,8 +99,18 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        if self.is_empty() {
+            return None;
+        }
+
+        let result = self.items.swap_remove(1);
+        self.count -= 1;
+
+        if !self.is_empty() {
+            self.heapify_down(1);
+        }
+
+        Some(result)
     }
 }
 
